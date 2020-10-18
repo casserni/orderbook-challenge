@@ -1,4 +1,6 @@
-class Exchange {
+import { IExchange } from "./types";
+
+class Exchange implements IExchange {
   constructor() {
     // TODO
   }
