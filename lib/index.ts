@@ -1,28 +1,31 @@
-import { IExchange } from "./types";
+import { merge } from "lodash";
+import { defaultOrderBook, IExchange } from "./types";
 
-class Exchange implements IExchange {
+export class Exchange implements IExchange {
+  public _orderBook = merge({}, defaultOrderBook);
+
   constructor() {
     // TODO
   }
 
-  sync(fileName: string) {
+  public sync(fileName: string) {
     // TODO
   }
 
-  buy(quantity: number, price: number) {
+  public buy(quantity: number, price: number) {
     // TODO
   }
 
-  sell(quantity: number, price: number) {
+  public sell(quantity: number, price: number) {
     // TODO
   }
 
-  getQuantityAtPrice(price: number) {
+  public getQuantityAtPrice(price: number) {
     // TODO
   }
 
-  getOrder(id: string) {
-    // TODO
+  public getOrder(id: string) {
+    return this._orderBook.orders.byId[id];
   }
 }
 
