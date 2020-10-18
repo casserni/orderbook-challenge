@@ -3,13 +3,46 @@ import "jest-expect-message";
 import * as faker from "faker";
 
 import { Exchange } from "../index";
-import { IOrder } from "../types";
+import { IOrder, IPrice } from "../types";
 
 describe("Exchange", () => {
   describe("sync()", () => {});
   describe("buy()", () => {});
   describe("sell()", () => {});
-  describe("getQuantityAtPrice()", () => {});
+
+  describe("getQuantityAtPrice()", () => {
+    it("should return remaining quantity from orderbook state", () => {
+      const mockPrice = faker.random.number();
+      const mockAmount = faker.random.number();
+      const mockPriceAmount: IPrice = {
+        price: mockPrice,
+        remainingQuantity: mockAmount,
+        orders: [],
+      };
+
+      const exchange = new Exchange();
+      exchange._orderBook = {
+        orders: {
+          byId: {},
+        },
+        prices: { byPrice: { [mockPrice]: mockPriceAmount } },
+      };
+      const result = exchange.getQuantityAtPrice(mockPrice);
+
+      expect(result).toEqual(mockAmount);
+      expect.assertions(1);
+    });
+
+    it("should return 0 for unfound price", () => {
+      const mockPrice = faker.random.number();
+
+      const exchange = new Exchange();
+      const result = exchange.getQuantityAtPrice(mockPrice);
+
+      expect(result).toEqual(0);
+      expect.assertions(1);
+    });
+  });
 
   describe("getOrder()", () => {
     it("should return the order from the orderbook state", () => {
@@ -41,7 +74,7 @@ describe("Exchange", () => {
       const exchange = new Exchange();
       const result = exchange.getOrder(mockId);
 
-      expect(result).toBeUndefined;
+      expect(result).toBeUndefined();
       expect.assertions(1);
     });
   });

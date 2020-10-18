@@ -32,7 +32,7 @@ export interface IOrderBook {
   };
 
   prices: {
-    byPrice: { [price: string]: IOrder };
+    byPrice: { [price: string]: IPrice };
   };
 }
 
