@@ -15,7 +15,33 @@ describe("Exchange", () => {
   afterAll(() => (Date = DateFunc));
 
   describe("sync()", () => {});
-  describe("buy()", () => {});
+
+  describe("buy()", () => {
+    it("should add the buy order to the orderbook", () => {
+      mockDate = faker.random.number();
+      const mockPrice = faker.random.number();
+      const mockAmount = faker.random.number();
+
+      const exchange = new Exchange();
+      const sell = exchange.buy(mockAmount, mockPrice);
+
+      const order: IOrder = {
+        id: mockDate.toString(),
+        price: mockPrice,
+        isBuyOrder: true,
+        quantity: mockAmount,
+        executedQuantity: expect.any(Number),
+      };
+
+      expect(sell, "should return the order").toEqual(order);
+      expect(
+        exchange._orderBook.orders.byId[order.id],
+        "should have added the order to the orderbook"
+      ).toEqual(order);
+      expect.assertions(2);
+    });
+  });
+
   describe("sell()", () => {
     it("should add the sell order to the orderbook", () => {
       const mockPrice = faker.random.number();

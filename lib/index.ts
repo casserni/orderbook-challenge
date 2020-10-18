@@ -13,9 +13,19 @@ export class Exchange implements IExchange {
     // TODO
   }
 
-  // @ts-ignore
   public buy(quantity: number, price: number) {
-    // TODO
+    const order: IOrder = {
+      id: generateId(),
+      quantity,
+      price,
+      executedQuantity: 0,
+      isBuyOrder: true,
+    };
+
+    // add the new order to the orderbook
+    this._orderBook.orders.byId[order.id] = order;
+
+    return order;
   }
 
   public sell(quantity: number, price: number) {
