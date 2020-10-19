@@ -14,8 +14,6 @@ describe("Exchange", () => {
 
   afterAll(() => (Date = DateFunc));
 
-  describe("sync()", () => {});
-
   describe("buy()", () => {
     it("should loop through prices executing any available buy sell and add to orderbook", () => {
       mockDate = 123;
