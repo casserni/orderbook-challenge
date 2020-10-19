@@ -16,9 +16,171 @@ describe("Exchange", () => {
 
   describe("sync()", () => {});
 
-  describe("buy()", () => {});
+  describe("buy()", () => {
+    it("should loop through prices executing any available buy sell and add to orderbook", () => {
+      mockDate = 123;
 
-  describe("sell()", () => {});
+      const exchange = new Exchange();
+      exchange._orderBook = {
+        orders: {
+          byId: {
+            "1": {
+              id: "1",
+              isBuyOrder: false,
+              price: 1,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "2": {
+              id: "2",
+              isBuyOrder: false,
+              price: 1,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "3": {
+              id: "3",
+              isBuyOrder: false,
+              price: 2,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "4": {
+              id: "4",
+              isBuyOrder: false,
+              price: 2,
+              quantity: 7,
+              executedQuantity: 0,
+            },
+            "5": {
+              id: "5",
+              isBuyOrder: false,
+              price: 5,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+          },
+        },
+        prices: {
+          byPrice: {
+            1: {
+              price: 1,
+              remainingQuantity: 2,
+              orders: ["1", "2"],
+            },
+            2: {
+              price: 2,
+              remainingQuantity: 8,
+              orders: ["3", "4"],
+            },
+            5: {
+              price: 2,
+              remainingQuantity: 1,
+              orders: ["5"],
+            },
+          },
+          sorted: {
+            lowestSell: [1, 2, 5],
+            highestBuy: [],
+          },
+        },
+      };
+
+      const result = exchange.buy(4, 3);
+
+      expect(result).toEqual({
+        id: "123",
+        quantity: 4,
+        price: 3,
+        executedQuantity: 4,
+        isBuyOrder: true,
+      });
+      expect(exchange._orderBook).toMatchSnapshot();
+    });
+  });
+
+  describe("sell()", () => {
+    it("should loop through prices executing any available buy orders and add to orderbook", () => {
+      mockDate = 123;
+
+      const exchange = new Exchange();
+      exchange._orderBook = {
+        orders: {
+          byId: {
+            "1": {
+              id: "1",
+              isBuyOrder: true,
+              price: 10,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "2": {
+              id: "2",
+              isBuyOrder: true,
+              price: 10,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "3": {
+              id: "3",
+              isBuyOrder: true,
+              price: 9,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "4": {
+              id: "4",
+              isBuyOrder: true,
+              price: 9,
+              quantity: 7,
+              executedQuantity: 0,
+            },
+            "5": {
+              id: "5",
+              isBuyOrder: true,
+              price: 5,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+          },
+        },
+        prices: {
+          byPrice: {
+            10: {
+              price: 1,
+              remainingQuantity: 2,
+              orders: ["1", "2"],
+            },
+            9: {
+              price: 2,
+              remainingQuantity: 8,
+              orders: ["3", "4"],
+            },
+            5: {
+              price: 2,
+              remainingQuantity: 1,
+              orders: ["5"],
+            },
+          },
+          sorted: {
+            lowestSell: [],
+            highestBuy: [10, 9, 5],
+          },
+        },
+      };
+
+      const result = exchange.sell(4, 6);
+
+      expect(result).toEqual({
+        id: mockDate.toString(),
+        quantity: 4,
+        price: 6,
+        executedQuantity: 4,
+        isBuyOrder: false,
+      });
+      expect(exchange._orderBook).toMatchSnapshot();
+    });
+  });
 
   describe("getQuantityAtPrice()", () => {
     it("should return remaining quantity from orderbook state", () => {
@@ -272,6 +434,172 @@ describe("Exchange", () => {
         "should have added sell orders in increasing price order"
       ).toEqual([lowest.price, mid.price, highest.price]);
       expect.assertions(1);
+    });
+  });
+
+  describe("_processOrder()", () => {
+    it("should loop through prices executing any available sell orders", () => {
+      const exchange = new Exchange();
+      exchange._orderBook = {
+        orders: {
+          byId: {
+            "1": {
+              id: "1",
+              isBuyOrder: false,
+              price: 1,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "2": {
+              id: "2",
+              isBuyOrder: false,
+              price: 1,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "3": {
+              id: "3",
+              isBuyOrder: false,
+              price: 2,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "4": {
+              id: "4",
+              isBuyOrder: false,
+              price: 2,
+              quantity: 7,
+              executedQuantity: 0,
+            },
+            "5": {
+              id: "5",
+              isBuyOrder: false,
+              price: 5,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+          },
+        },
+        prices: {
+          byPrice: {
+            1: {
+              price: 1,
+              remainingQuantity: 2,
+              orders: ["1", "2"],
+            },
+            2: {
+              price: 2,
+              remainingQuantity: 8,
+              orders: ["3", "4"],
+            },
+            5: {
+              price: 2,
+              remainingQuantity: 1,
+              orders: ["5"],
+            },
+          },
+          sorted: {
+            lowestSell: [1, 2, 5],
+            highestBuy: [],
+          },
+        },
+      };
+
+      const order: IOrder = {
+        id: "foo",
+        quantity: 4,
+        price: 3,
+        executedQuantity: 0,
+        isBuyOrder: true,
+      };
+
+      // @ts-ignore
+      const result = exchange._processOrder(order);
+
+      expect(result.executedQuantity).toEqual(4);
+      expect(exchange._orderBook).toMatchSnapshot();
+    });
+
+    it("should loop through prices executing any available buy orders", () => {
+      const exchange = new Exchange();
+      exchange._orderBook = {
+        orders: {
+          byId: {
+            "1": {
+              id: "1",
+              isBuyOrder: true,
+              price: 10,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "2": {
+              id: "2",
+              isBuyOrder: true,
+              price: 10,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "3": {
+              id: "3",
+              isBuyOrder: true,
+              price: 9,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+            "4": {
+              id: "4",
+              isBuyOrder: true,
+              price: 9,
+              quantity: 7,
+              executedQuantity: 0,
+            },
+            "5": {
+              id: "5",
+              isBuyOrder: true,
+              price: 5,
+              quantity: 1,
+              executedQuantity: 0,
+            },
+          },
+        },
+        prices: {
+          byPrice: {
+            10: {
+              price: 1,
+              remainingQuantity: 2,
+              orders: ["1", "2"],
+            },
+            9: {
+              price: 2,
+              remainingQuantity: 8,
+              orders: ["3", "4"],
+            },
+            5: {
+              price: 2,
+              remainingQuantity: 1,
+              orders: ["5"],
+            },
+          },
+          sorted: {
+            lowestSell: [],
+            highestBuy: [10, 9, 5],
+          },
+        },
+      };
+
+      const order: IOrder = {
+        id: "foo",
+        quantity: 4,
+        price: 6,
+        executedQuantity: 0,
+        isBuyOrder: false,
+      };
+
+      // @ts-ignore
+      const result = exchange._processOrder(order);
+
+      expect(result.executedQuantity).toEqual(4);
+      expect(exchange._orderBook).toMatchSnapshot();
     });
   });
 });

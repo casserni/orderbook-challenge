@@ -22,6 +22,9 @@ export class Exchange implements IExchange {
       isBuyOrder: true,
     };
 
+    // process this order executing any quantity we can now
+    this._processOrder(order);
+
     // add the new order to the orderbook
     this._addOrder(order);
 
@@ -36,6 +39,9 @@ export class Exchange implements IExchange {
       executedQuantity: 0,
       isBuyOrder: false,
     };
+
+    // process this order executing any quantity we can now
+    this._processOrder(order);
 
     // add the new order to the orderbook
     this._addOrder(order);
@@ -87,6 +93,64 @@ export class Exchange implements IExchange {
         );
       }
     }
+  }
+
+  private _processOrder(order: IOrder) {
+    const prices = this._orderBook.prices.sorted[
+      order.isBuyOrder ? "lowestSell" : "highestBuy"
+    ];
+
+    // loop through all prices until this order is fufilled or until the comarator returns false
+    let sortedPrices = [];
+    for (const price of prices) {
+      if (
+        (order.isBuyOrder && price > order.price) ||
+        (!order.isBuyOrder && price < order.price) ||
+        order.quantity === order.executedQuantity
+      ) {
+        sortedPrices.push(price);
+        continue;
+      }
+
+      const priceData = this._orderBook.prices.byPrice[price];
+
+      // loop through all orders at this price and execute them until fufilled
+      // we double up on storage here with the orders array since Array.Slice might be too time costly on every
+      // removal of a fufilled order
+      let orders = [];
+      for (const orderId of priceData.orders) {
+        const orderData = this._orderBook.orders.byId[orderId];
+
+        if (order.quantity !== order.executedQuantity) {
+          const available = orderData.quantity - orderData.executedQuantity;
+          const needed = order.quantity - order.executedQuantity;
+          const taken = Math.min(needed, available);
+
+          order.executedQuantity += taken;
+          orderData.executedQuantity += taken;
+          priceData.remainingQuantity -= taken;
+        }
+
+        if (orderData.quantity !== orderData.executedQuantity) {
+          orders.push(orderId);
+          continue;
+        }
+      }
+
+      // if all orders at this price have been executed, remove it from price storage
+      if (orders.length) {
+        priceData.orders = orders;
+        sortedPrices.push(price);
+      } else {
+        delete this._orderBook.prices.byPrice[price];
+      }
+    }
+
+    this._orderBook.prices.sorted[
+      order.isBuyOrder ? "lowestSell" : "highestBuy"
+    ] = sortedPrices;
+
+    return order;
   }
 }
 

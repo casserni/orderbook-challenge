@@ -1,0 +1,291 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Exchange _processOrder() should loop through prices executing any available buy orders 1`] = `
+Object {
+  "orders": Object {
+    "byId": Object {
+      "1": Object {
+        "executedQuantity": 1,
+        "id": "1",
+        "isBuyOrder": true,
+        "price": 10,
+        "quantity": 1,
+      },
+      "2": Object {
+        "executedQuantity": 1,
+        "id": "2",
+        "isBuyOrder": true,
+        "price": 10,
+        "quantity": 1,
+      },
+      "3": Object {
+        "executedQuantity": 1,
+        "id": "3",
+        "isBuyOrder": true,
+        "price": 9,
+        "quantity": 1,
+      },
+      "4": Object {
+        "executedQuantity": 1,
+        "id": "4",
+        "isBuyOrder": true,
+        "price": 9,
+        "quantity": 7,
+      },
+      "5": Object {
+        "executedQuantity": 0,
+        "id": "5",
+        "isBuyOrder": true,
+        "price": 5,
+        "quantity": 1,
+      },
+    },
+  },
+  "prices": Object {
+    "byPrice": Object {
+      "5": Object {
+        "orders": Array [
+          "5",
+        ],
+        "price": 2,
+        "remainingQuantity": 1,
+      },
+      "9": Object {
+        "orders": Array [
+          "4",
+        ],
+        "price": 2,
+        "remainingQuantity": 6,
+      },
+    },
+    "sorted": Object {
+      "highestBuy": Array [
+        9,
+        5,
+      ],
+      "lowestSell": Array [],
+    },
+  },
+}
+`;
+
+exports[`Exchange _processOrder() should loop through prices executing any available sell orders 1`] = `
+Object {
+  "orders": Object {
+    "byId": Object {
+      "1": Object {
+        "executedQuantity": 1,
+        "id": "1",
+        "isBuyOrder": false,
+        "price": 1,
+        "quantity": 1,
+      },
+      "2": Object {
+        "executedQuantity": 1,
+        "id": "2",
+        "isBuyOrder": false,
+        "price": 1,
+        "quantity": 1,
+      },
+      "3": Object {
+        "executedQuantity": 1,
+        "id": "3",
+        "isBuyOrder": false,
+        "price": 2,
+        "quantity": 1,
+      },
+      "4": Object {
+        "executedQuantity": 1,
+        "id": "4",
+        "isBuyOrder": false,
+        "price": 2,
+        "quantity": 7,
+      },
+      "5": Object {
+        "executedQuantity": 0,
+        "id": "5",
+        "isBuyOrder": false,
+        "price": 5,
+        "quantity": 1,
+      },
+    },
+  },
+  "prices": Object {
+    "byPrice": Object {
+      "2": Object {
+        "orders": Array [
+          "4",
+        ],
+        "price": 2,
+        "remainingQuantity": 6,
+      },
+      "5": Object {
+        "orders": Array [
+          "5",
+        ],
+        "price": 2,
+        "remainingQuantity": 1,
+      },
+    },
+    "sorted": Object {
+      "highestBuy": Array [],
+      "lowestSell": Array [
+        2,
+        5,
+      ],
+    },
+  },
+}
+`;
+
+exports[`Exchange buy() should loop through prices executing any available buy sell and add to orderbook 1`] = `
+Object {
+  "orders": Object {
+    "byId": Object {
+      "1": Object {
+        "executedQuantity": 1,
+        "id": "1",
+        "isBuyOrder": false,
+        "price": 1,
+        "quantity": 1,
+      },
+      "123": Object {
+        "executedQuantity": 4,
+        "id": "123",
+        "isBuyOrder": true,
+        "price": 3,
+        "quantity": 4,
+      },
+      "2": Object {
+        "executedQuantity": 1,
+        "id": "2",
+        "isBuyOrder": false,
+        "price": 1,
+        "quantity": 1,
+      },
+      "3": Object {
+        "executedQuantity": 1,
+        "id": "3",
+        "isBuyOrder": false,
+        "price": 2,
+        "quantity": 1,
+      },
+      "4": Object {
+        "executedQuantity": 1,
+        "id": "4",
+        "isBuyOrder": false,
+        "price": 2,
+        "quantity": 7,
+      },
+      "5": Object {
+        "executedQuantity": 0,
+        "id": "5",
+        "isBuyOrder": false,
+        "price": 5,
+        "quantity": 1,
+      },
+    },
+  },
+  "prices": Object {
+    "byPrice": Object {
+      "2": Object {
+        "orders": Array [
+          "4",
+        ],
+        "price": 2,
+        "remainingQuantity": 6,
+      },
+      "5": Object {
+        "orders": Array [
+          "5",
+        ],
+        "price": 2,
+        "remainingQuantity": 1,
+      },
+    },
+    "sorted": Object {
+      "highestBuy": Array [],
+      "lowestSell": Array [
+        2,
+        5,
+      ],
+    },
+  },
+}
+`;
+
+exports[`Exchange sell() should loop through prices executing any available buy orders and add to orderbook 1`] = `
+Object {
+  "orders": Object {
+    "byId": Object {
+      "1": Object {
+        "executedQuantity": 1,
+        "id": "1",
+        "isBuyOrder": true,
+        "price": 10,
+        "quantity": 1,
+      },
+      "123": Object {
+        "executedQuantity": 4,
+        "id": "123",
+        "isBuyOrder": false,
+        "price": 6,
+        "quantity": 4,
+      },
+      "2": Object {
+        "executedQuantity": 1,
+        "id": "2",
+        "isBuyOrder": true,
+        "price": 10,
+        "quantity": 1,
+      },
+      "3": Object {
+        "executedQuantity": 1,
+        "id": "3",
+        "isBuyOrder": true,
+        "price": 9,
+        "quantity": 1,
+      },
+      "4": Object {
+        "executedQuantity": 1,
+        "id": "4",
+        "isBuyOrder": true,
+        "price": 9,
+        "quantity": 7,
+      },
+      "5": Object {
+        "executedQuantity": 0,
+        "id": "5",
+        "isBuyOrder": true,
+        "price": 5,
+        "quantity": 1,
+      },
+    },
+  },
+  "prices": Object {
+    "byPrice": Object {
+      "5": Object {
+        "orders": Array [
+          "5",
+        ],
+        "price": 2,
+        "remainingQuantity": 1,
+      },
+      "9": Object {
+        "orders": Array [
+          "4",
+        ],
+        "price": 2,
+        "remainingQuantity": 6,
+      },
+    },
+    "sorted": Object {
+      "highestBuy": Array [
+        9,
+        5,
+      ],
+      "lowestSell": Array [],
+    },
+  },
+}
+`;
