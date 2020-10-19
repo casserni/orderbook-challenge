@@ -16,114 +16,9 @@ describe("Exchange", () => {
 
   describe("sync()", () => {});
 
-  describe("buy()", () => {
-    it("should add the buy order to the orderbook", () => {
-      mockDate = faker.random.number();
-      const mockPrice = faker.random.number();
-      const mockAmount = faker.random.number();
+  describe("buy()", () => {});
 
-      const exchange = new Exchange();
-      const sell = exchange.buy(mockAmount, mockPrice);
-
-      const order: IOrder = {
-        id: mockDate.toString(),
-        price: mockPrice,
-        isBuyOrder: true,
-        quantity: mockAmount,
-        executedQuantity: expect.any(Number),
-      };
-
-      expect(sell, "should return the order").toEqual(order);
-      expect(
-        exchange._orderBook.orders.byId[order.id],
-        "should have added the order to the orderbook"
-      ).toEqual(order);
-      expect.assertions(2);
-    });
-  });
-
-  describe("sell()", () => {
-    it("should add the sell order to the orderbook", () => {
-      mockDate = faker.random.number();
-      const mockPrice = faker.random.number();
-      const mockAmount = faker.random.number();
-
-      const exchange = new Exchange();
-      const sell = exchange.sell(mockAmount, mockPrice);
-
-      const order: IOrder = {
-        id: mockDate.toString(),
-        price: mockPrice,
-        isBuyOrder: false,
-        quantity: mockAmount,
-        executedQuantity: expect.any(Number),
-      };
-
-      expect(sell, "should return the order").toEqual(order);
-      expect(
-        exchange._orderBook.orders.byId[order.id],
-        "should have added the order to the orderbook"
-      ).toEqual(order);
-      expect.assertions(2);
-    });
-
-    it("should create new price storage for open sell order", () => {
-      mockDate = faker.random.number();
-      const mockPrice = faker.random.number();
-      const mockAmount = faker.random.number();
-
-      const exchange = new Exchange();
-      exchange.sell(mockAmount, mockPrice);
-
-      const priceStorage: IPrice = {
-        price: mockPrice,
-        remainingQuantity: mockAmount,
-        orders: [mockDate.toString()],
-      };
-
-      expect(
-        exchange._orderBook.prices.byPrice[mockPrice],
-        "should have added new price to price storage"
-      ).toEqual(priceStorage);
-      expect.assertions(1);
-    });
-
-    it("should add to update existing price storage for open sell order", () => {
-      const existingOrder: IOrder = {
-        id: mockDate.toString(),
-        price: faker.random.number(),
-        quantity: faker.random.number(),
-        executedQuantity: 0,
-        isBuyOrder: false,
-      };
-
-      mockDate = faker.random.number();
-      const mockAmount = faker.random.number({
-        min: existingOrder.quantity + 1,
-      });
-
-      const exchange = new Exchange();
-      exchange._orderBook.prices.byPrice[existingOrder.price] = {
-        price: existingOrder.price,
-        remainingQuantity: existingOrder.quantity,
-        orders: [existingOrder.id],
-      };
-
-      exchange.sell(mockAmount, existingOrder.price);
-
-      const newPriceStorage: IPrice = {
-        price: existingOrder.price,
-        remainingQuantity: existingOrder.quantity + mockAmount,
-        orders: [existingOrder.id, mockDate.toString()],
-      };
-
-      expect(
-        exchange._orderBook.prices.byPrice[existingOrder.price],
-        "should have updated existing price storage"
-      ).toEqual(newPriceStorage);
-      expect.assertions(1);
-    });
-  });
+  describe("sell()", () => {});
 
   describe("getQuantityAtPrice()", () => {
     it("should return remaining quantity from orderbook state", () => {
@@ -190,6 +85,96 @@ describe("Exchange", () => {
       const result = exchange.getOrder(mockId);
 
       expect(result).toBeUndefined();
+      expect.assertions(1);
+    });
+  });
+
+  describe("_addOrder()", () => {
+    it("should add the order to the orderbook", () => {
+      mockDate = faker.random.number();
+
+      const order: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number(),
+        isBuyOrder: false,
+        quantity: faker.random.number(),
+        executedQuantity: expect.any(Number),
+      };
+
+      const exchange = new Exchange();
+      // @ts-ignore private func
+      exchange._addOrder(order);
+
+      expect(
+        exchange._orderBook.orders.byId[order.id],
+        "should have added the order to the orderbook"
+      ).toEqual(order);
+      expect.assertions(1);
+    });
+
+    it("should create new price storage for open order", () => {
+      mockDate = faker.random.number();
+
+      const order: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number(),
+        isBuyOrder: false,
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 5 }),
+      };
+
+      const exchange = new Exchange();
+      // @ts-ignore private func
+      exchange._addOrder(order);
+
+      expect(
+        exchange._orderBook.prices.byPrice[order.price],
+        "should have added new price to price storage"
+      ).toEqual({
+        price: order.price,
+        remainingQuantity: order.quantity - order.executedQuantity,
+        orders: [order.id],
+      });
+      expect.assertions(1);
+    });
+
+    it("should add to update existing price storage for open sell order", () => {
+      mockDate = faker.random.number();
+      const existingOrder: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number(),
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 10 }),
+        isBuyOrder: false,
+      };
+      const existingRemaining =
+        existingOrder.quantity - existingOrder.executedQuantity;
+
+      mockDate = faker.random.number();
+      const newOrder: IOrder = {
+        id: mockDate.toString(),
+        price: existingOrder.price,
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 10 }),
+        isBuyOrder: false,
+      };
+      const newRemaining = newOrder.quantity - newOrder.executedQuantity;
+
+      const exchange = new Exchange();
+
+      // @ts-ignore private func
+      exchange._addOrder(existingOrder);
+      // @ts-ignore private func
+      exchange._addOrder(newOrder);
+
+      expect(
+        exchange._orderBook.prices.byPrice[existingOrder.price],
+        "should have updated existing price storage"
+      ).toEqual({
+        price: existingOrder.price,
+        remainingQuantity: existingRemaining + newRemaining,
+        orders: [existingOrder.id, newOrder.id],
+      });
       expect.assertions(1);
     });
   });

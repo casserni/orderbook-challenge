@@ -23,7 +23,7 @@ export class Exchange implements IExchange {
     };
 
     // add the new order to the orderbook
-    this._orderBook.orders.byId[order.id] = order;
+    this._addOrder(order);
 
     return order;
   }
@@ -38,25 +38,7 @@ export class Exchange implements IExchange {
     };
 
     // add the new order to the orderbook
-    this._orderBook.orders.byId[order.id] = order;
-
-    // if this is an open order add to the prices storage
-    const isOpen = order.quantity > order.executedQuantity;
-    if (isOpen) {
-      const existing = this._orderBook.prices.byPrice[price];
-      const remainingQuantity = order.quantity - order.executedQuantity;
-
-      if (existing) {
-        existing.orders.push(order.id);
-        existing.remainingQuantity += remainingQuantity;
-      } else {
-        this._orderBook.prices.byPrice[price] = {
-          price,
-          remainingQuantity,
-          orders: [order.id],
-        };
-      }
-    }
+    this._addOrder(order);
 
     return order;
   }
@@ -68,6 +50,30 @@ export class Exchange implements IExchange {
 
   public getOrder(id: string) {
     return this._orderBook.orders.byId[id];
+  }
+
+  // helpers
+  private _addOrder(order: IOrder) {
+    // add the new order to the orderbook
+    this._orderBook.orders.byId[order.id] = order;
+
+    // if this is an open order add to the prices storage
+    const isOpen = order.quantity > order.executedQuantity;
+    if (isOpen) {
+      const existing = this._orderBook.prices.byPrice[order.price];
+      const remainingQuantity = order.quantity - order.executedQuantity;
+
+      if (existing) {
+        existing.orders.push(order.id);
+        existing.remainingQuantity += remainingQuantity;
+      } else {
+        this._orderBook.prices.byPrice[order.price] = {
+          price: order.price,
+          remainingQuantity,
+          orders: [order.id],
+        };
+      }
+    }
   }
 }
 
