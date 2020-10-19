@@ -1,16 +1,26 @@
 import { merge } from "lodash";
-import { defaultOrderBook, IExchange, IOrder } from "./types";
+import * as fs from "fs";
+
+import { defaultOrderBook, IExchange, IOrder, IOrderBook } from "./types";
 
 export class Exchange implements IExchange {
   public _orderBook = merge({}, defaultOrderBook);
 
-  constructor() {
-    // TODO
-  }
+  constructor() {}
 
-  // @ts-ignore
   public sync(fileName: string) {
-    // TODO
+    let content;
+    try {
+      const fileContent = fs.readFileSync(fileName, { encoding: "utf8" });
+
+      content = JSON.parse(fileContent) as IOrderBook;
+
+      this._orderBook = merge({}, defaultOrderBook, content);
+
+      return content;
+    } catch (err) {
+      throw new Error(err);
+    }
   }
 
   public buy(quantity: number, price: number) {
