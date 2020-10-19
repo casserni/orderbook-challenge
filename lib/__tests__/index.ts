@@ -44,6 +44,7 @@ describe("Exchange", () => {
 
   describe("sell()", () => {
     it("should add the sell order to the orderbook", () => {
+      mockDate = faker.random.number();
       const mockPrice = faker.random.number();
       const mockAmount = faker.random.number();
 
@@ -64,6 +65,63 @@ describe("Exchange", () => {
         "should have added the order to the orderbook"
       ).toEqual(order);
       expect.assertions(2);
+    });
+
+    it("should create new price storage for open sell order", () => {
+      mockDate = faker.random.number();
+      const mockPrice = faker.random.number();
+      const mockAmount = faker.random.number();
+
+      const exchange = new Exchange();
+      exchange.sell(mockAmount, mockPrice);
+
+      const priceStorage: IPrice = {
+        price: mockPrice,
+        remainingQuantity: mockAmount,
+        orders: [mockDate.toString()],
+      };
+
+      expect(
+        exchange._orderBook.prices.byPrice[mockPrice],
+        "should have added new price to price storage"
+      ).toEqual(priceStorage);
+      expect.assertions(1);
+    });
+
+    it("should add to update existing price storage for open sell order", () => {
+      const existingOrder: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number(),
+        quantity: faker.random.number(),
+        executedQuantity: 0,
+        isBuyOrder: false,
+      };
+
+      mockDate = faker.random.number();
+      const mockAmount = faker.random.number({
+        min: existingOrder.quantity + 1,
+      });
+
+      const exchange = new Exchange();
+      exchange._orderBook.prices.byPrice[existingOrder.price] = {
+        price: existingOrder.price,
+        remainingQuantity: existingOrder.quantity,
+        orders: [existingOrder.id],
+      };
+
+      exchange.sell(mockAmount, existingOrder.price);
+
+      const newPriceStorage: IPrice = {
+        price: existingOrder.price,
+        remainingQuantity: existingOrder.quantity + mockAmount,
+        orders: [existingOrder.id, mockDate.toString()],
+      };
+
+      expect(
+        exchange._orderBook.prices.byPrice[existingOrder.price],
+        "should have updated existing price storage"
+      ).toEqual(newPriceStorage);
+      expect.assertions(1);
     });
   });
 
