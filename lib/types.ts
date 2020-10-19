@@ -33,6 +33,10 @@ export interface IOrderBook {
 
   prices: {
     byPrice: { [price: string]: IPrice };
+    sorted: {
+      lowestSell: number[];
+      highestBuy: number[];
+    };
   };
 }
 
@@ -43,5 +47,9 @@ export const defaultOrderBook: IOrderBook = {
 
   prices: {
     byPrice: {},
+    sorted: {
+      lowestSell: [],
+      highestBuy: [],
+    },
   },
 };

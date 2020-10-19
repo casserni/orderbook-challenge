@@ -73,6 +73,19 @@ export class Exchange implements IExchange {
           orders: [order.id],
         };
       }
+
+      if (order.isBuyOrder) {
+        binarySearchInsert(
+          this._orderBook.prices.sorted.highestBuy,
+          order.price,
+          (a, b) => b - a
+        );
+      } else {
+        binarySearchInsert(
+          this._orderBook.prices.sorted.lowestSell,
+          order.price
+        );
+      }
     }
   }
 }
@@ -82,4 +95,43 @@ export class Exchange implements IExchange {
 // Using Date will also allow us to easily stub out this function in testing
 function generateId() {
   return Date.now().toString();
+}
+
+// using binary search to decrease the search time to O(log n)
+// array splice is still O(N) time :(
+// source code inspired from
+// https://www.npmjs.com/package/binary-search-insert
+function binarySearchInsert(
+  arr: number[],
+  item: number,
+  comparator: (a: number, b: number) => number = (a, b) => a - b
+) {
+  // if empty array add and return early
+  if (arr.length === 0) {
+    arr.push(item);
+    return;
+  }
+
+  let high = arr.length - 1;
+  let low = 0;
+  let mid = 0;
+
+  while (low <= high) {
+    mid = Math.floor(high - low);
+    let cmp = comparator(arr[mid], item);
+    if (cmp <= 0) {
+      // searching too low
+      low = mid + 1;
+    } else {
+      // searching too high
+      high = mid - 1;
+    }
+  }
+
+  let cmp = comparator(arr[mid], item);
+  if (cmp <= 0) {
+    mid++;
+  }
+
+  arr.splice(mid, 0, item);
 }

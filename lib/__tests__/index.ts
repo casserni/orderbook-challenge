@@ -35,7 +35,13 @@ describe("Exchange", () => {
         orders: {
           byId: {},
         },
-        prices: { byPrice: { [mockPrice]: mockPriceAmount } },
+        prices: {
+          byPrice: { [mockPrice]: mockPriceAmount },
+          sorted: {
+            lowestSell: [],
+            highestBuy: [],
+          },
+        },
       };
       const result = exchange.getQuantityAtPrice(mockPrice);
 
@@ -70,7 +76,13 @@ describe("Exchange", () => {
         orders: {
           byId: { [mockId]: mockOrder },
         },
-        prices: { byPrice: {} },
+        prices: {
+          byPrice: {},
+          sorted: {
+            lowestSell: [],
+            highestBuy: [],
+          },
+        },
       };
       const result = exchange.getOrder(mockId);
 
@@ -138,7 +150,7 @@ describe("Exchange", () => {
       expect.assertions(1);
     });
 
-    it("should add to update existing price storage for open sell order", () => {
+    it("should add to update existing price storage for open order", () => {
       mockDate = faker.random.number();
       const existingOrder: IOrder = {
         id: mockDate.toString(),
@@ -175,6 +187,90 @@ describe("Exchange", () => {
         remainingQuantity: existingRemaining + newRemaining,
         orders: [existingOrder.id, newOrder.id],
       });
+      expect.assertions(1);
+    });
+
+    it("should add buy order to correct spot in buy price orders", () => {
+      mockDate = faker.random.number();
+
+      const lowest: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number({ min: 0, max: 2 }),
+        isBuyOrder: true,
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 5 }),
+      };
+
+      const mid: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number({ min: 3, max: 4 }),
+        isBuyOrder: true,
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 5 }),
+      };
+
+      const highest: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number({ min: 5, max: 6 }),
+        isBuyOrder: true,
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 5 }),
+      };
+
+      const exchange = new Exchange();
+      // @ts-ignore private func
+      exchange._addOrder(mid);
+      // @ts-ignore private func
+      exchange._addOrder(highest);
+      // @ts-ignore private func
+      exchange._addOrder(lowest);
+
+      expect(
+        exchange._orderBook.prices.sorted.highestBuy,
+        "should have added buy orders in decreasing price order"
+      ).toEqual([highest.price, mid.price, lowest.price]);
+      expect.assertions(1);
+    });
+
+    it("should add sell order to correct spot in sell price orders", () => {
+      mockDate = faker.random.number();
+
+      const lowest: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number({ min: 0, max: 2 }),
+        isBuyOrder: false,
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 5 }),
+      };
+
+      const mid: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number({ min: 3, max: 4 }),
+        isBuyOrder: false,
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 5 }),
+      };
+
+      const highest: IOrder = {
+        id: mockDate.toString(),
+        price: faker.random.number({ min: 5, max: 6 }),
+        isBuyOrder: false,
+        quantity: faker.random.number({ min: 10 }),
+        executedQuantity: faker.random.number({ min: 0, max: 5 }),
+      };
+
+      const exchange = new Exchange();
+      // @ts-ignore private func
+      exchange._addOrder(mid);
+      // @ts-ignore private func
+      exchange._addOrder(highest);
+      // @ts-ignore private func
+      exchange._addOrder(lowest);
+
+      expect(
+        exchange._orderBook.prices.sorted.lowestSell,
+        "should have added sell orders in increasing price order"
+      ).toEqual([lowest.price, mid.price, highest.price]);
       expect.assertions(1);
     });
   });
