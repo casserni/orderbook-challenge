@@ -5,6 +5,8 @@ import * as faker from "faker";
 import { Exchange } from "../index";
 import { IOrder, IPrice } from "../types";
 
+import { times, random } from "lodash";
+
 describe("Exchange", () => {
   const DateFunc = Date;
   let mockDate = faker.random.number();
@@ -15,7 +17,7 @@ describe("Exchange", () => {
   afterAll(() => (Date = DateFunc));
 
   describe("buy()", () => {
-    it("should loop through prices executing any available buy sell and add to orderbook", () => {
+    it("should loop through prices executing any available buy sell and add to orderbook", async () => {
       mockDate = 123;
 
       const exchange = new Exchange();
@@ -84,7 +86,7 @@ describe("Exchange", () => {
         },
       };
 
-      const result = exchange.buy(4, 3);
+      const result = await exchange.buy(4, 3);
 
       expect(result).toEqual({
         id: "123",
@@ -98,7 +100,7 @@ describe("Exchange", () => {
   });
 
   describe("sell()", () => {
-    it("should loop through prices executing any available buy orders and add to orderbook", () => {
+    it("should loop through prices executing any available buy orders and add to orderbook", async () => {
       mockDate = 123;
 
       const exchange = new Exchange();
@@ -167,7 +169,7 @@ describe("Exchange", () => {
         },
       };
 
-      const result = exchange.sell(4, 6);
+      const result = await exchange.sell(4, 6);
 
       expect(result).toEqual({
         id: mockDate.toString(),
@@ -436,7 +438,7 @@ describe("Exchange", () => {
   });
 
   describe("_processOrder()", () => {
-    it("should loop through prices executing any available sell orders", () => {
+    it("should loop through prices executing any available sell orders", async () => {
       const exchange = new Exchange();
       exchange._orderBook = {
         orders: {
@@ -512,13 +514,13 @@ describe("Exchange", () => {
       };
 
       // @ts-ignore
-      const result = exchange._processOrder(order);
+      const result = await exchange._processOrder(order);
 
       expect(result.executedQuantity).toEqual(4);
       expect(exchange._orderBook).toMatchSnapshot();
     });
 
-    it("should loop through prices executing any available buy orders", () => {
+    it("should loop through prices executing any available buy orders", async () => {
       const exchange = new Exchange();
       exchange._orderBook = {
         orders: {
@@ -594,10 +596,33 @@ describe("Exchange", () => {
       };
 
       // @ts-ignore
-      const result = exchange._processOrder(order);
+      const result = await exchange._processOrder(order);
 
       expect(result.executedQuantity).toEqual(4);
       expect(exchange._orderBook).toMatchSnapshot();
     });
+  });
+});
+
+describe("process", () => {
+  it("should run", async () => {
+    // 100 orders with random price from 0-100
+
+    const exchange = new Exchange();
+
+    const start = Date.now();
+    times(100, async () => {
+      times(100, async (num) => {
+        const buy = random(0, 1, false);
+
+        if (buy) {
+          await exchange.buy(random(0, 100, false), random(0, 100, false));
+        } else {
+          await exchange.sell(random(0, 100, false), random(0, 100, false));
+        }
+      });
+    });
+    const end = Date.now();
+    console.log(end - start);
   });
 });

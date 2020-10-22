@@ -23,7 +23,7 @@ export class Exchange implements IExchange {
     }
   }
 
-  public buy(quantity: number, price: number) {
+  public async buy(quantity: number, price: number) {
     const order: IOrder = {
       id: generateId(),
       quantity,
@@ -33,15 +33,15 @@ export class Exchange implements IExchange {
     };
 
     // process this order executing any quantity we can now
-    this._processOrder(order);
+    await this._processOrder(order);
 
     // add the new order to the orderbook
-    this._addOrder(order);
+    await this._addOrder(order);
 
     return order;
   }
 
-  public sell(quantity: number, price: number) {
+  public async sell(quantity: number, price: number) {
     const order: IOrder = {
       id: generateId(),
       quantity,
@@ -51,10 +51,10 @@ export class Exchange implements IExchange {
     };
 
     // process this order executing any quantity we can now
-    this._processOrder(order);
+    await this._processOrder(order);
 
     // add the new order to the orderbook
-    this._addOrder(order);
+    await this._addOrder(order);
 
     return order;
   }
@@ -69,7 +69,7 @@ export class Exchange implements IExchange {
   }
 
   // helpers
-  private _addOrder(order: IOrder) {
+  private async _addOrder(order: IOrder) {
     // add the new order to the orderbook
     this._orderBook.orders.byId[order.id] = order;
 
@@ -105,20 +105,19 @@ export class Exchange implements IExchange {
     }
   }
 
-  private _processOrder(order: IOrder) {
+  private async _processOrder(order: IOrder) {
     const prices = this._orderBook.prices.sorted[
       order.isBuyOrder ? "lowestSell" : "highestBuy"
     ];
 
     // loop through all prices until this order is fufilled or until the comarator returns false
-    let sortedPrices = [];
+    let deletedPrices: number[] = [];
     for (const price of prices) {
       if (
         (order.isBuyOrder && price > order.price) ||
         (!order.isBuyOrder && price < order.price) ||
         order.quantity === order.executedQuantity
       ) {
-        sortedPrices.push(price);
         continue;
       }
 
@@ -150,15 +149,15 @@ export class Exchange implements IExchange {
       // if all orders at this price have been executed, remove it from price storage
       if (orders.length) {
         priceData.orders = orders;
-        sortedPrices.push(price);
       } else {
+        deletedPrices.push(price);
         delete this._orderBook.prices.byPrice[price];
       }
     }
 
     this._orderBook.prices.sorted[
       order.isBuyOrder ? "lowestSell" : "highestBuy"
-    ] = sortedPrices;
+    ] = prices.filter((price) => !deletedPrices.includes(price));
 
     return order;
   }

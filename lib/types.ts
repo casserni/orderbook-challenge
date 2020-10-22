@@ -1,7 +1,7 @@
 export interface IExchange {
   sync: (fileName: string) => IOrderBook;
-  buy: (quantity: number, price: number) => IOrder;
-  sell: (quantity: number, price: number) => IOrder;
+  buy: (quantity: number, price: number) => Promise<IOrder>;
+  sell: (quantity: number, price: number) => Promise<IOrder>;
   getQuantityAtPrice: (price: number) => number;
   getOrder: (id: string) => IOrder;
 }
